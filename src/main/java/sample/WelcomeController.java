@@ -70,9 +70,9 @@ public class WelcomeController extends DefaultController {
 
 
 
-    @Route(method = HttpMethod.GET, uri = "/thread", produces = "application/xml")
+    @Route(method = HttpMethod.GET, uri = "/raw/thread", produces = "application/xml")
     @Async
-    public Result getCSWCapaThread() throws IOException {
+    public Result getRawThreaded() throws IOException {
 
         PipedOutputStream outputStream = new PipedOutputStream();
 
@@ -89,9 +89,9 @@ public class WelcomeController extends DefaultController {
         return ok(new RenderableStream(inputStream, false)).as("application/xml");
     }
 
-    @Route(method = HttpMethod.GET, uri = "/service", produces = "application/xml")
+    @Route(method = HttpMethod.GET, uri = "/raw/service", produces = "application/xml")
     @Async
-    public Result getCSWCapaService() throws IOException {
+    public Result getRawService() throws IOException {
 
         PipedOutputStream outputStream = new PipedOutputStream();
 
@@ -105,9 +105,44 @@ public class WelcomeController extends DefaultController {
         return ok(new RenderableStream(inputStream, false)).as("application/xml");
     }
 
+
+    @Route(method = HttpMethod.GET, uri = "/chunked/thread", produces = "application/xml")
+    @Async
+    public Result getChunkedThread() throws IOException {
+
+        PipedOutputStream outputStream = new PipedOutputStream();
+
+        PipedInputStream inputStream = new PipedInputStream();
+        inputStream.connect(outputStream);
+
+        new Thread() {
+            @Override
+            public void run() {
+                writeToOutputAndClose(outputStream);
+            }
+        }.start();
+
+        return ok(inputStream).as("application/xml");
+    }
+
+    @Route(method = HttpMethod.GET, uri = "/chunked/service", produces = "application/xml")
+    @Async
+    public Result getChunkedService() throws IOException {
+
+        PipedOutputStream outputStream = new PipedOutputStream();
+
+        PipedInputStream inputStream = new PipedInputStream();
+        inputStream.connect(outputStream);
+
+        service.submit(() -> {
+            writeToOutputAndClose(outputStream);
+        });
+
+        return ok(inputStream).as("application/xml");
+    }
+
     void writeToOutputAndClose(OutputStream outputStream) {
         try {
-            logger().info("req");
             Charset utf8 = Charset.forName("UTF-8");
             outputStream.write("<root>".getBytes(utf8));
             for (int i = 0; i < 100; i++) {
