@@ -158,6 +158,7 @@ public class WelcomeController extends DefaultController {
             try {
                 outputStream.flush();
                 outputStream.close();
+                logger().info("done");
             } catch (IOException e) {
                 logger().error(e.getMessage(), e);
             }
