@@ -20,6 +20,13 @@
 package sample;
 
 import org.apache.felix.ipojo.annotations.Requires;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+/*
+import org.vertx.java.core.streams.Pump;
+import org.vertx.java.core.streams.ReadStream;
+import org.vertx.java.core.streams.WriteStream;
+*/
 import org.wisdom.api.DefaultController;
 import org.wisdom.api.annotations.Controller;
 import org.wisdom.api.annotations.Route;
@@ -46,6 +53,8 @@ import java.nio.charset.Charset;
 public class WelcomeController extends DefaultController {
 
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(WelcomeController.class);
+
     @Requires(filter = "(name=myexecutor)", proxy = false)
     ManagedExecutorService service;
 
@@ -68,7 +77,7 @@ public class WelcomeController extends DefaultController {
     }
 
 
-
+/*
 
     @Route(method = HttpMethod.GET, uri = "/raw/thread", produces = "application/xml")
     @Async
@@ -126,7 +135,6 @@ public class WelcomeController extends DefaultController {
     }
 
     @Route(method = HttpMethod.GET, uri = "/chunked/service", produces = "application/xml")
-    @Async
     public Result getChunkedService() throws IOException {
 
         PipedOutputStream outputStream = new PipedOutputStream();
@@ -142,19 +150,29 @@ public class WelcomeController extends DefaultController {
     }
 
     void writeToOutputAndClose(OutputStream outputStream) {
+
+        ReadStream<?> rs=null;
+        WriteStream<?> ws=null;
+        Pump.createPump(rs,ws);
+
+
         try {
             Charset utf8 = Charset.forName("UTF-8");
             outputStream.write("<root>".getBytes(utf8));
-            for (int i = 0; i < 100; i++) {
-                Thread.sleep(10);
+            for (int i = 0; i < 10000; i++) {
+                LOGGER.debug("before write");
                 outputStream.write((" <line>" + i + "</line>").getBytes(utf8));
+                LOGGER.debug("after write");
+
+                outputStream.flush();
             }
             outputStream.write("</root>".getBytes(utf8));
         } catch (IOException e) {
             logger().error(e.getMessage(), e);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
+        }*//* catch (InterruptedException e) {
+            logger().error(e.getMessage(), e);
+        }*//*
+        finally {
             try {
                 outputStream.flush();
                 outputStream.close();
@@ -163,6 +181,6 @@ public class WelcomeController extends DefaultController {
                 logger().error(e.getMessage(), e);
             }
         }
-    }
+    }*/
 
 }
